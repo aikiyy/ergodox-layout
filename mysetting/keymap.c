@@ -1,15 +1,7 @@
 #include QMK_KEYBOARD_H
-#include "version.h"
-#include "keymap_german.h"
-#include "keymap_nordic.h"
-#include "keymap_french.h"
-#include "keymap_spanish.h"
-#include "keymap_hungarian.h"
-#include "keymap_swedish.h"
-#include "keymap_br_abnt2.h"
-#include "keymap_canadian_multilingual.h"
-#include "keymap_german_ch.h"
 #include "keymap_jp.h"
+#include "mousekey.h"
+#include "version.h"
 
 #define KC_MAC_UNDO LGUI(KC_Z)
 #define KC_MAC_CUT LGUI(KC_X)
@@ -26,9 +18,11 @@
 #define NO_BSLS_ALT KC_EQUAL
 
 enum custom_keycodes {
-  RGB_SLD = EZ_SAFE_RANGE,
-  HSV_86_255_128,
-  HSV_27_255_255,
+#ifdef ORYX_CONFIGURATOR
+  VRSN = EZ_SAFE_RANGE,
+#else
+  VRSN = SAFE_RANGE,
+#endif
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -112,33 +106,22 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 bool suspended = false;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  switch (keycode) {
-    case RGB_SLD:
-      if (record->event.pressed) {
-        rgblight_mode(1);
-      }
-      return false;
-    case HSV_86_255_128:
-      if (record->event.pressed) {
-        #ifdef RGBLIGHT_ENABLE
-          rgblight_enable();
-          rgblight_mode(1);
-          rgblight_sethsv(86,255,128);
-        #endif
-      }
-      return false;
-    case HSV_27_255_255:
-      if (record->event.pressed) {
-        #ifdef RGBLIGHT_ENABLE
-          rgblight_enable();
-          rgblight_mode(1);
-          rgblight_sethsv(27,255,255);
-        #endif
-      }
-      return false;
-  }
-  return true;
+    if (record->event.pressed) {
+        switch (keycode) {
+            case VRSN:
+                SEND_STRING(QMK_KEYBOARD "/" QMK_KEYMAP " @ " QMK_VERSION);
+                return false;
+        }
+    }
+    return true;
 }
+
+// Runs just one time when the keyboard initializes.
+void keyboard_post_init_user(void) {
+#ifdef RGBLIGHT_COLOR_LAYER_0
+    rgblight_setrgb(RGBLIGHT_COLOR_LAYER_0);
+#endif
+};
 
 uint32_t layer_state_set_user(uint32_t state) {
 
